@@ -1,6 +1,6 @@
 # lrbt
 
-Private factors and units built on top of the [RBT](https://github.com/your/rbt) framework.
+Private factors and units built on top of the [RBT](https://github.com/liuch288/rbt) framework.
 
 ## Structure
 
