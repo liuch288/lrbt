@@ -2,11 +2,11 @@ from rbt.ic import MeanIC
 from rbt.dmu import DecisionMakingUnit
 import numpy as np
 
-from rbr.ic import MinMaxIC
+from rbt.ic import MinMaxIC
 
 
 class AtrDMU(DecisionMakingUnit):
-    version = "v1"
+    version = "v0"
 
     def __init__(self, n, mds_per_unit):
         """
