@@ -44,6 +44,9 @@ class AtrDMU(DecisionMakingUnit):
         """
         return f"{self.n}_{self.mds_per_unit}_{'r' if self.reset_on_eod else 'c'}"
 
+    def dependencies(self) -> list:
+        return ["MdDMU_v0"]
+
     def on_end_of_day(self):
         """日终重置，清除日内累积状态。"""
         if not self.reset_on_eod:
@@ -53,9 +56,6 @@ class AtrDMU(DecisionMakingUnit):
         self.minmax = MinMaxIC()
         self.tr = 0
         self.atr = 0
-
-    def dependencies(self) -> list:
-        return ["MdDMU_v0"]
 
     def make_decision(self, new_data, previous_result: dict = {}) -> dict:
         """根据新行情数据更新并计算 ATR。

@@ -40,6 +40,13 @@ class KlinePatternDMU(DecisionMakingUnit):
     def dependencies(self) -> list:
         return [f"KlineDMU_v0_{self.interval}min"]
 
+    def on_end_of_day(self):
+        """日终重置。"""
+        if not self.reset_on_eod:
+            return
+        self.close_prices.clear()
+        self.pattern = ""
+
     def make_decision(self, new_data, previous_result: dict = {}) -> dict:
         """根据上游 KlineDMU 的输出，追踪已完成K线的收盘价并计算模式。
 
@@ -76,10 +83,3 @@ class KlinePatternDMU(DecisionMakingUnit):
 
         self.pattern = pattern
         return {"pattern": self.pattern}
-
-    def on_end_of_day(self):
-        """日终重置。"""
-        if not self.reset_on_eod:
-            return
-        self.close_prices.clear()
-        self.pattern = ""
