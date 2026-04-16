@@ -42,6 +42,14 @@ class AtrDMU(DecisionMakingUnit):
         """
         return f"{self.n}_{self.mds_per_unit}"
 
+    def on_end_of_day(self):
+        """日终重置，清除日内累积状态。"""
+        self.counted_mds = 0
+        self.tr_mean = MeanIC(self.n)
+        self.minmax = MinMaxIC()
+        self.tr = 0
+        self.atr = 0
+
     def dependencies(self) -> list:
         return ["MdDMU_v0"]
 
