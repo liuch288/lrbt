@@ -24,54 +24,34 @@ pip install -e .
 
 ## DMU (Decision Making Unit)
 
-### SimpleTrendDMU
-Simple trend following using moving average crossover.
+### AtrDMU
+ATR（Average True Range，平均真实波幅）决策单元。将行情按固定条数划分单元，计算每个单元的振幅 TR，再取均值得到 ATR。
 
-**Usage:**
 ```python
-from lrbt.dmu import SimpleTrendDMU
+from lrbt.dmu import AtrDMU
 
-dmu = SimpleTrendDMU(fast_period=10, slow_period=30)
-result = dmu.make_decision(new_data, prev_result)
+# n: TR 均值窗口大小, mds_per_unit: 每单元行情条数, reset_on_eod: 是否日终重置
+dmu = AtrDMU(n=14, mds_per_unit=60, reset_on_eod=True)
 ```
 
-**Returns:**
-- `signal`: 1 (uptrend), -1 (downtrend), 0 (neutral)
-- `hits`: +1 on bullish crossover, -1 on bearish crossover
-- `fast_ma`, `slow_ma`: Current moving averages
-- `diff`: Difference between fast and slow MAs
+依赖: `MdDMU_v0`
 
-### MeanRevertDMU
-Mean reversion using Bollinger Band logic.
+输出:
+- `atr`: 平均真实波幅
+- `tr`: 当前单元振幅
+- `diff`: tr - atr
 
-**Usage:**
+### KlinePatternDMU
+K线模式决策单元。追踪过去 N 根已完成 K 线的收盘价，输出相邻涨跌方向模式字符串。
+
 ```python
-from lrbt.dmu import MeanRevertDMU
+from lrbt.dmu import KlinePatternDMU
 
-dmu = MeanRevertDMU(period=20, std_dev=2.0)
-result = dmu.make_decision(new_data, prev_result)
+# interval: K线分钟间隔, window_size: 追踪K线数量, reset_on_eod: 是否日终重置
+dmu = KlinePatternDMU(interval=1, window_size=3, reset_on_eod=True)
 ```
 
-**Returns:**
-- `signal`: 1 (oversold), -1 (overbought), 0 (neutral)
-- `z_score`: Standard deviations from mean
-- `mean`, `upper`, `lower`: Bollinger Bands
-- `std`: Rolling standard deviation
+依赖: `KlineDMU_v0_{interval}min`
 
-### BreakoutDMU
-Detects price channel breakouts.
-
-**Usage:**
-```python
-from lrbt.dmu import BreakoutDMU
-
-dmu = BreakoutDMU(period=20)
-result = dmu.make_decision(new_data, prev_result)
-```
-
-**Returns:**
-- `signal`: 1 (breakout above), -1 (breakout below), 0 (no breakout)
-- `hits`: +1 on upside breakout, -1 on downside breakout
-- `max_price`, `min_price`: Rolling high/low
-- `channel_width`: Width of the price channel
-- `position_pct`: Price position within channel (0-1)
+输出:
+- `pattern`: 方向模式字符串，如 `"udu"`（u=涨, d=跌, h=平）
