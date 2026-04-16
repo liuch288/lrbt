@@ -15,25 +15,27 @@ class KlinePatternDMU(DecisionMakingUnit):
     - close[i] == close[i-1] → "h" (hold/horizontal)
     """
 
-    version = "v2"
+    version = "v0"
 
-    def __init__(self, interval: int = 1, window_size: int = 3):
+    def __init__(self, interval: int = 1, window_size: int = 3, reset_on_eod: bool = True):
         """初始化KlinePatternDMU。
 
         参数:
             interval (int): K线时间间隔，单位为分钟，默认为1。
             window_size (int): 追踪的K线数量，默认为3根。
+            reset_on_eod (bool): 是否日终重置，默认为 True。
         """
         super().__init__()
         self.interval = interval
         self.window_size = window_size
+        self.reset_on_eod = reset_on_eod
         self.close_prices = deque(maxlen=window_size + 1)
         self.pattern = ""
         self._key_completed = f"KlineDMU_v0_{interval}min__completed"
         self._key_close = f"KlineDMU_v0_{interval}min__close"
 
     def get_param_str(self) -> str:
-        return f"{self.interval}min_{self.window_size}"
+        return f"{self.interval}min_{self.window_size}_{'r' if self.reset_on_eod else 'c'}"
 
     def dependencies(self) -> list:
         return [f"KlineDMU_v0_{self.interval}min"]
@@ -77,5 +79,7 @@ class KlinePatternDMU(DecisionMakingUnit):
 
     def on_end_of_day(self):
         """日终重置。"""
+        if not self.reset_on_eod:
+            return
         self.close_prices.clear()
         self.pattern = ""

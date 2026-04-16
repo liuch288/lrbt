@@ -17,16 +17,18 @@ class AtrDMU(DecisionMakingUnit):
 
     version = "v0"
 
-    def __init__(self, n, mds_per_unit):
+    def __init__(self, n, mds_per_unit, reset_on_eod: bool = True):
         """初始化 AtrDMU。
 
         参数:
             n (int): ATR 均值窗口大小，即对多少个单元的 TR 取平均。
             mds_per_unit (int): 每个单元包含的行情数据条数。
+            reset_on_eod (bool): 是否日终重置，默认为 True。
         """
         super().__init__()
         self.n = n
         self.mds_per_unit = mds_per_unit
+        self.reset_on_eod = reset_on_eod
         self.counted_mds = 0
         self.tr_mean = MeanIC(n)
         self.minmax = MinMaxIC()
@@ -40,15 +42,17 @@ class AtrDMU(DecisionMakingUnit):
         Returns:
             str: 载明参数的字符串。
         """
-        return f"{self.n}_{self.mds_per_unit}"
+        return f"{self.n}_{self.mds_per_unit}_{'r' if self.reset_on_eod else 'c'}"
 
-    # def on_end_of_day(self):
-    #     """日终重置，清除日内累积状态。"""
-    #     self.counted_mds = 0
-    #     self.tr_mean = MeanIC(self.n)
-    #     self.minmax = MinMaxIC()
-    #     self.tr = 0
-    #     self.atr = 0
+    def on_end_of_day(self):
+        """日终重置，清除日内累积状态。"""
+        if not self.reset_on_eod:
+            return
+        self.counted_mds = 0
+        self.tr_mean = MeanIC(self.n)
+        self.minmax = MinMaxIC()
+        self.tr = 0
+        self.atr = 0
 
     def dependencies(self) -> list:
         return ["MdDMU_v0"]
