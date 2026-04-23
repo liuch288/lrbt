@@ -21,7 +21,7 @@ class EmaDualThrustLmtMaDirDMU(DecisionMakingUnit):
 
     version = "v0"
 
-    def __init__(self, ema_w, kl_freq=1, n=20, k1=0.1, k2=0.1, ma_lag=1500):
+    def __init__(self, ema_w, kl_freq=1, n=20, k1=0.1, k2=0.1, ma_lag=1500, reset_on_eod: bool = True):
         """初始化 EmaDualThrustLmtMaDirDMU。
 
         参数:
@@ -40,6 +40,7 @@ class EmaDualThrustLmtMaDirDMU(DecisionMakingUnit):
         self.k1 = k1
         self.k2 = k2
         self.ema_w = ema_w
+        self.reset_on_eod = reset_on_eod
 
         self.position = 0
         self.hh = 0.0
@@ -69,13 +70,15 @@ class EmaDualThrustLmtMaDirDMU(DecisionMakingUnit):
         self.update_unit_name()
 
     def get_param_str(self) -> str:
-        return f"{self.ema_w}_{self.kl_freq}min_{self.n}_{self.k1}_{self.k2}_{self.ma_lag}"
+        return f"{self.ema_w}_{self.kl_freq}min_{self.n}_{self.k1}_{self.k2}_{self.ma_lag}_{'r' if self.reset_on_eod else 'c'}"
 
     def dependencies(self) -> list:
         return [self._kline_dmu_name]
 
     def on_end_of_day(self):
         """日终重置所有状态。"""
+        if not self.reset_on_eod:
+            return
         self.last_send_position = 0
         self.position = 0
         self.hh = 0.0
@@ -93,11 +96,6 @@ class EmaDualThrustLmtMaDirDMU(DecisionMakingUnit):
         self.long_quota = True
         self.short_quota = True
         self.relative_position = 0
-
-    def reset(self):
-        super().reset()
-        self.valid_data = []
-        self.result = {}
 
     def make_decision(self, new_data, previous_result: dict = {}) -> dict:
         """根据 Dual Thrust 策略计算持仓信号。
